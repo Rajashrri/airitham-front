@@ -12,7 +12,8 @@ import {
 import Breadcrumbs from "../../components/Common/Breadcrumb";
 import { toast } from "react-toastify";
 import { useParams,useNavigate } from "react-router-dom";
-
+import { getClientById, updateClient } from "../../api/clientApi";
+ 
 const UpdateClient = () => {
   const [client, setClient] = useState({
     name: "",
@@ -30,30 +31,29 @@ const navigate = useNavigate();
   ];
 
   // Fetch client data
-  useEffect(() => {
-    const fetchClient = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_API_BASE_URL}/api/client/getclientByid/${id}`
-        );
-        const res_data = await response.json();
+useEffect(() => {
+  const fetchClient = async () => {
+    try {
+      const res_data = await getClientById(id);
 
-        if (response.ok) {
-          const data = res_data.msg;
-          setClient({
-            name: data.name || "",
-           old_image: data.image || "",
-          });
-        } else {
-          toast.error("Client not found");
-        }
-      } catch (error) {
-        console.error("Fetch client error:", error);
+      if (res_data.msg) {
+        const data = res_data.msg;
+        setClient({
+          name: data.name || "",
+          old_image: data.image || "",
+        });
+      } else {
+        toast.error("Client not found");
       }
-    };
+    } catch (error) {
+      console.error("Fetch client error:", error);
+      toast.error("Failed to fetch client data");
+    }
+  };
 
-    fetchClient();
-  }, [id]);
+  fetchClient();
+}, [id]);
+
 
   // Input handler
   const handleInput = (e) => {
@@ -68,45 +68,39 @@ const navigate = useNavigate();
 
   // ✅ Submit update
   const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
+  e.preventDefault();
+  const newErrors = {};
 
-     if (!client.name) newErrors.name = "Name is required";
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  if (!client.name) newErrors.name = "Name is required";
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    const adminid = localStorage.getItem("adminid");
+    const formData = new FormData();
+
+    formData.append("name", client.name);
+    formData.append("updatedBy", adminid);
+    if (client.image) formData.append("image", client.image);
+
+    const res_data = await updateClient(id, formData);
+
+    if (res_data.success === false || res_data.msg === "Client already exist") {
+      toast.error(res_data.msg || "Failed to update client");
       return;
     }
 
-    try {
-      const adminid = localStorage.getItem("adminid");
-      const formData = new FormData();
-
-      formData.append("name", client.name);
-
-      if (client.image) formData.append("image", client.image);
-     
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/client/updateclient/${id}`,
-        {
-          method: "PATCH",
-          body: formData,
-        }
-      );
-
-      const res_data = await response.json();
-      if (response.ok) {
-        toast.success("Client updated successfully!");
-        navigate("/client-list");
-      } else {
-        toast.error(res_data.msg || "Failed to update client");
-      }
-    } catch (error) {
-      console.error("Update client Error:", error);
-      toast.error("Something went wrong!");
-    }
-  };
-
+    toast.success("Client updated successfully!");
+    navigate("/client-list");
+  } catch (error) {
+    console.error("Update client Error:", error);
+    toast.error("Something went wrong!");
+  }
+};
+ 
 
  
 

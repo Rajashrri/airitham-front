@@ -4,6 +4,7 @@ import {
 } from "reactstrap";
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 import { toast } from 'react-toastify';
+import { addClient } from "../../api/clientApi";
 
 const AddClient = () => {
   const [client, setClient] = useState({
@@ -33,58 +34,45 @@ const AddClient = () => {
 
 
  // ✅ Submit handler
-  const handleAddSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
+ const handleAddSubmit = async (e) => {
+  e.preventDefault();
+  const newErrors = {};
 
-    // Validation for all required fields
-    if (!client.name) newErrors.name = 'Name is required';
-   
-    if (!client.image) newErrors.image = "Main image is required";
-   
+  // Validation
+  if (!client.name) newErrors.name = "Name is required";
+  if (!client.image) newErrors.image = "Image is required";
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    const adminid = localStorage.getItem("adminid");
+
+    const formData = new FormData();
+    formData.append("name", client.name);
+    formData.append("createdBy", adminid);
+    if (client.image) formData.append("image", client.image);
+
+    // ✅ Use API helper instead of raw fetch
+    const res_data = await addClient(formData);
+    console.log("API Response:", res_data);
+
+    if (res_data.success === false || res_data.msg === "Client already exist") {
+      toast.error(res_data.msg || "Failed to add client");
       return;
     }
 
-    try {
-      const adminid = localStorage.getItem("adminid");
+    toast.success("Client added successfully!");
+    setErrors({});
+    setClient({ name: "", image: null });
+  } catch (error) {
+    console.error("Add Client Error:", error);
+    toast.error("Something went wrong!");
+  }
+};
 
-      const formData = new FormData();
-      formData.append("name", client.name);
-           formData.append("createdBy", adminid);
-
-
-      if (client.image) formData.append("image", client.image);
-
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/client/addclient`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      const res_data = await response.json();
-      console.log("API Response:", res_data);
-
-      if (response.ok) {
-        toast.success("Client Added successfully!");
-        setErrors({});
-        setClient({
-          name: "",
-          
-          image: null,
-        });
-      } else {
-        toast.error(res_data.msg || "Failed to add blog");
-      }
-    } catch (error) {
-      console.error("Add Blog Error:", error);
-      toast.error("Something went wrong!");
-    }
-  };
 
 
   
