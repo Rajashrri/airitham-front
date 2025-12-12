@@ -12,6 +12,7 @@ import {
 import Breadcrumbs from "../../components/Common/Breadcrumb";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import { addBlog, getBlogCategories } from "../../api/blogApi";
 
 
 const CreateEmploye = () => {
@@ -52,102 +53,80 @@ const CreateEmploye = () => {
   };
 
   // ✅ Submit handler
-  const handleAddSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
+const handleAddSubmit = async (e) => {
+  e.preventDefault();
 
-    // Validation for all required fields
-    if (!blog.name) newErrors.name = "Title is required";
-    if (!blog.category_id) newErrors.category_id = "Category is required";
-    if (!blog.date) newErrors.date = "Date is required";
-    if (!blog.author_name) newErrors.author_name = "Author name is required";
-    if (!blog.short_description)
-      newErrors.short_description = "Short description is required";
-    if (!blog.details) newErrors.details = "Details are required";
-    if (!blog.main_image) newErrors.main_image = "Main image is required";
-    if (!blog.feature_image)
-      newErrors.feature_image = "Feature image is required";
+  const newErrors = {};
+  if (!blog.name) newErrors.name = "Title is required";
+  if (!blog.category_id) newErrors.category_id = "Category is required";
+  if (!blog.date) newErrors.date = "Date is required";
+  if (!blog.author_name) newErrors.author_name = "Author name is required";
+  if (!blog.short_description) newErrors.short_description = "Short description is required";
+  if (!blog.details) newErrors.details = "Details are required";
+  if (!blog.main_image) newErrors.main_image = "Main image is required";
+  if (!blog.feature_image) newErrors.feature_image = "Feature image is required";
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    const adminid = localStorage.getItem("adminid");
+    const formData = new FormData();
+    formData.append("name", blog.name);
+    formData.append("category_id", blog.category_id);
+    formData.append("category_name", blog.category_name);
+    formData.append("date", blog.date);
+    formData.append("author_name", blog.author_name);
+    formData.append("short_description", blog.short_description);
+    formData.append("details", blog.details);
+    formData.append("createdBy", adminid);
+    if (blog.main_image) formData.append("main_image", blog.main_image);
+    if (blog.feature_image) formData.append("feature_image", blog.feature_image);
+
+    const res_data = await addBlog(formData);
+
+    if (res_data.success === false || res_data.msg === "Blog already exist") {
+      toast.error(res_data.msg || "Failed to add blog");
       return;
     }
 
-    try {
-      const adminid = localStorage.getItem("adminid");
-
-      const formData = new FormData();
-      formData.append("name", blog.name);
-      formData.append("category_id", blog.category_id);
-      formData.append("category_name", blog.category_name);
-      formData.append("date", blog.date);
-      formData.append("author_name", blog.author_name);
-      formData.append("short_description", blog.short_description);
-      formData.append("details", blog.details);
-      formData.append("createdBy", adminid);
-
-      if (blog.main_image) formData.append("main_image", blog.main_image);
-      if (blog.feature_image)
-        formData.append("feature_image", blog.feature_image);
-
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blog/addblog`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      const res_data = await response.json();
-      console.log("API Response:", res_data);
-
-      if (response.ok) {
-        toast.success("Blog Added successfully!");
-        setErrors({});
-        setBlog({
-          name: "",
-          category_id: "",
-          category_name: "",
-          date: "",
-          author_name: "",
-          short_description: "",
-          details: "",
-          main_image: null,
-          feature_image: null,
-        });
-      } else {
-        toast.error(res_data.msg || "Failed to add blog");
-      }
-    } catch (error) {
-      console.error("Add Blog Error:", error);
-      toast.error("Something went wrong!");
-    }
-  };
+    toast.success("Blog added successfully!");
+    setErrors({});
+    setBlog({
+      name: "",
+      category_id: "",
+      category_name: "",
+      date: "",
+      author_name: "",
+      short_description: "",
+      details: "",
+      main_image: null,
+      feature_image: null,
+    });
+  } catch (error) {
+    console.error("Add Blog Error:", error);
+    toast.error("Something went wrong!");
+  }
+};
 
   //add blog
 
-  const fetchOptions = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blog/categoryOptions`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      const res_data = await response.json();
-      const options = Array.isArray(res_data.msg)
-        ? res_data.msg.map((item) => ({
-            value: item._id, // ✅ Use the role's ID from DB
-            label: item.name?.trim() || item.name,
-          }))
-        : [];
-      setOptions(options);
-    } catch (error) {
-      console.error("Error fetching options:", error);
-    }
-  };
+ const fetchOptions = async () => {
+  try {
+    const res_data = await getBlogCategories();
+    const options = Array.isArray(res_data.msg)
+      ? res_data.msg.map((item) => ({
+          value: item._id,
+          label: item.name?.trim() || item.name,
+        }))
+      : [];
+    setOptions(options);
+  } catch (error) {
+    console.error("Error fetching category options:", error);
+  }
+};
 
   useEffect(() => {
     fetchOptions();

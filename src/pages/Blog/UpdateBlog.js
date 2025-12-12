@@ -13,6 +13,7 @@ import Breadcrumbs from "../../components/Common/Breadcrumb";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
+import { getBlogCategories, getBlogById, updateBlog } from "../../api/blogApi";
 
 const UpdateEmploye = () => {
   const { id } = useParams(); // ✅ Allowed in functional component
@@ -41,55 +42,50 @@ const UpdateEmploye = () => {
   }, [id]);
 
   // Fetch categories
-  const fetchOptions = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blog/categoryOptions`
-      );
-      const res_data = await response.json();
+const fetchOptions = async () => {
+  try {
+    const res_data = await getBlogCategories();
 
-      if (Array.isArray(res_data.msg)) {
-        const options = res_data.msg.map((item) => ({
-          value: item._id,
-          label: item.name?.trim() || "Unnamed Category",
-        }));
-        setOptions(options);
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
+    if (Array.isArray(res_data.msg)) {
+      const options = res_data.msg.map((item) => ({
+        value: item._id,
+        label: item.name?.trim() || "Unnamed Category",
+      }));
+      setOptions(options);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    toast.error("Failed to load categories");
+  }
+};
+ 
 
   const fetchBlogData = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blog/getblogByid/${id}`
-      );
-      const res_data = await response.json();
+  try {
+    const res_data = await getBlogById(id);
 
-      if (response.ok && res_data.msg) {
-        const blogData = res_data.msg;
-
-        setBlog((prev) => ({
-          ...prev,
-          name: blogData.name || "",
-          category_id: blogData.category_id || "",
-          category_name: blogData.category_name || "",
-          date: blogData.date ? blogData.date.slice(0, 10) : "", // format YYYY-MM-DD
-          author_name: blogData.author_name || "",
-          short_description: blogData.short_description || "",
-          details: blogData.details || "",
-          old_main_image: blogData.main_image || "",
-          old_feature_image: blogData.feature_image || "",
-        }));
-      } else {
-        toast.error("Failed to load blog data");
-      }
-    } catch (error) {
-      console.error("Error fetching blog:", error);
-      toast.error("Something went wrong while fetching blog data");
+    if (res_data.msg) {
+      const blogData = res_data.msg;
+      setBlog({
+        name: blogData.name || "",
+        category_id: blogData.category_id || "",
+        category_name: blogData.category_name || "",
+        date: blogData.date ? blogData.date.slice(0, 10) : "",
+        author_name: blogData.author_name || "",
+        short_description: blogData.short_description || "",
+        details: blogData.details || "",
+        old_main_image: blogData.main_image || "",
+        old_feature_image: blogData.feature_image || "",
+      });
+    } else {
+      toast.error("Failed to load blog data");
     }
-  };
+  } catch (error) {
+    console.error("Error fetching blog:", error);
+    toast.error("Error loading blog details");
+  }
+};
+
   // Handle input
   const handleInput = (e) => {
     const { name, value } = e.target;
@@ -103,60 +99,53 @@ const UpdateEmploye = () => {
   };
 
   // ✅ Submit update
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
+ const handleUpdateSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!blog.name) newErrors.name = "Title is required";
-    if (!blog.category_id) newErrors.category_id = "Category is required";
-    if (!blog.date) newErrors.date = "Date is required";
-    if (!blog.author_name) newErrors.author_name = "Author name is required";
-    if (!blog.short_description)
-      newErrors.short_description = "Short description is required";
-    if (!blog.details) newErrors.details = "Details are required";
+  const newErrors = {};
+  if (!blog.name) newErrors.name = "Title is required";
+  if (!blog.category_id) newErrors.category_id = "Category is required";
+  if (!blog.date) newErrors.date = "Date is required";
+  if (!blog.author_name) newErrors.author_name = "Author name is required";
+  if (!blog.short_description) newErrors.short_description = "Short description is required";
+  if (!blog.details) newErrors.details = "Details are required";
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    const adminid = localStorage.getItem("adminid");
+    const formData = new FormData();
+
+    formData.append("name", blog.name);
+    formData.append("category_id", blog.category_id);
+    formData.append("category_name", blog.category_name);
+    formData.append("date", blog.date);
+    formData.append("author_name", blog.author_name);
+    formData.append("short_description", blog.short_description);
+    formData.append("details", blog.details);
+    formData.append("updatedBy", adminid);
+
+    if (blog.main_image) formData.append("main_image", blog.main_image);
+    if (blog.feature_image) formData.append("feature_image", blog.feature_image);
+
+    const res_data = await updateBlog(id, formData);
+
+    if (res_data.success === false || res_data.msg === "Blog already exist") {
+      toast.error(res_data.msg || "Failed to update blog");
       return;
     }
 
-    try {
-      const adminid = localStorage.getItem("adminid");
-      const formData = new FormData();
+    toast.success("Blog updated successfully!");
+    navigate("/blog-list");
+  } catch (error) {
+    console.error("Update Blog Error:", error);
+    toast.error("Something went wrong!");
+  }
+};
 
-      formData.append("name", blog.name);
-      formData.append("category_id", blog.category_id);
-      formData.append("category_name", blog.category_name);
-      formData.append("date", blog.date);
-      formData.append("author_name", blog.author_name);
-      formData.append("short_description", blog.short_description);
-      formData.append("details", blog.details);
-      formData.append("updatedBy", adminid);
-
-      if (blog.main_image) formData.append("main_image", blog.main_image);
-      if (blog.feature_image)
-        formData.append("feature_image", blog.feature_image);
-
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blog/updateblog/${id}`,
-        {
-          method: "PATCH",
-          body: formData,
-        }
-      );
-
-      const res_data = await response.json();
-      if (response.ok) {
-        toast.success("Blog updated successfully!");
-        navigate("/blog-list");
-      } else {
-        toast.error(res_data.msg || "Failed to update blog");
-      }
-    } catch (error) {
-      console.error("Update Blog Error:", error);
-      toast.error("Something went wrong!");
-    }
-  };
 
   return (
     <div className="page-content">

@@ -27,6 +27,12 @@ import Breadcrumbs from "../../components/Common/Breadcrumb";
 import { Link } from "react-router-dom";
 import deleteimg from "../../assets/images/delete.png";
 import { toast } from "react-toastify";
+import {
+  getBlogs,
+  getBlogCategoriesForTable,
+  updateBlogStatus,
+  deleteBlog,
+} from "../../api/blogApi";
 
 function GlobalFilter({
   preGlobalFilteredRows,
@@ -239,79 +245,55 @@ const EmployeeList = () => {
   const [modalOpen1, setModalOpen1] = useState(false);
   const [categoryMap, setCategoryMap] = useState({});
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blog/getcategoryOptionsTable`
-      );
-      const data = await response.json();
+const fetchCategories = async () => {
+  try {
+    const data = await getBlogCategoriesForTable();
+    const categoryData = Array.isArray(data.msg)
+      ? data.msg.reduce((acc, item) => {
+          acc[item._id] = item.name;
+          return acc;
+        }, {})
+      : {};
+    setCategoryMap(categoryData);
+  } catch (error) {
+    console.error("Error fetching category names:", error);
+    toast.error("Failed to load categories");
+  }
+};
 
-      const categoryData = Array.isArray(data.msg)
-        ? data.msg.reduce((acc, item) => {
-            acc[item._id] = item.name; // Create a map of ID -> Name
-            return acc;
-          }, {})
-        : {};
-
-      setCategoryMap(categoryData);
-    } catch (error) {
-      console.error("Error fetching category names:", error);
-    }
-  };
   //for datatable
-  const fetchData = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blog/getdatablog`,
-        {
-          method: "GET",
-        }
-      );
+const fetchData = async () => {
+  try {
+    const result = await getBlogs();
+    setEmployeelist(result.msg || []);
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    toast.error("Failed to load blogs. Please try again later.");
+  }
+};
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      setEmployeelist(result.msg); // ✅ set setEmployeelist, not setData
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Failed to load roles. Please try again later.");
-    }
-  };
 
   //status
 
-  const handleChange = async (currentStatus, id) => {
-    const newStatus = currentStatus == 1 ? 0 : 1;
+const handleChange = async (currentStatus, id) => {
+  const newStatus = currentStatus == 1 ? 0 : 1;
 
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blog/update-statusblog`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: newStatus, id }),
-        }
-      );
+  try {
+    const res_data = await updateBlogStatus(id, newStatus);
 
-      const res_data = await response.json();
-
-      if (response.ok) {
-        toast.success("Blog Status updated Successfully");
-        fetchData(); // Refresh the list
-      } else {
-        toast.error(
-          res_data.extraDetails || res_data.message || "Something went wrong."
-        );
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Error updating status. Please try again!");
+    if (res_data.success === false) {
+      toast.error(res_data.msg || "Failed to update status");
+      return;
     }
-  };
+
+    toast.success("Blog status updated successfully");
+    fetchData();
+  } catch (error) {
+    console.error("Error updating status:", error);
+    toast.error("Error updating status. Please try again!");
+  }
+};
+
 
   const [deleteId, setDeleteId] = useState(null);
 
@@ -327,37 +309,32 @@ const EmployeeList = () => {
     setDeleteId(null);
   };
   // 👇 Confirm delete function
-  const handleyesno = async () => {
-    if (!deleteId) {
-      toast.error("No ID to delete.");
+ const handleyesno = async () => {
+  if (!deleteId) {
+    toast.error("No ID to delete.");
+    return;
+  }
+
+  try {
+    const data = await deleteBlog(deleteId);
+
+    if (data.success === false) {
+      toast.error(data.msg || "Failed to delete blog");
       return;
     }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blog/deleteblog/${deleteId}`,
-        {
-          method: "DELETE",
-        }
-      );
 
-      const data = await response.json();
+    toast.success("Blog deleted successfully");
+    setEmployeelist((prevItems) =>
+      prevItems.filter((row) => row._id !== deleteId)
+    );
+    setModalOpen2(false);
+    setDeleteId(null);
+  } catch (error) {
+    console.error("Delete error:", error);
+    toast.error("Something went wrong.");
+  }
+};
 
-      if (response.ok) {
-        fetchData(); // Reload data
-        setModalOpen2(false);
-        toast.success("Selected data Deleted Successfully");
-        setEmployeelist((prevItems) =>
-          prevItems.filter((row) => row._id !== deleteId)
-        );
-        setDeleteId(null);
-      } else {
-        toast.error(data.extraDetails || data.message);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong.");
-    }
-  };
 
   useEffect(() => {
     fetchData();
