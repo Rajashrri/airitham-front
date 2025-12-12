@@ -12,6 +12,7 @@ import {
 import Breadcrumbs from "../../components/Common/Breadcrumb";
 import { toast } from "react-toastify";
 import { useParams,useNavigate } from "react-router-dom";
+import { getTestimonialById, updateTestimonial } from "../../api/testimonialApi";
 
 const Updatetestimonial = () => {
   const [testimonial, setTestimonial] = useState({
@@ -32,37 +33,31 @@ const navigate = useNavigate();
   ];
 
   // Fetch testimonial data
-  useEffect(() => {
+ useEffect(() => {
   const fetchTestimonial = async () => {
-  try {
-    const response = await fetch(
-      `${process.env.REACT_APP_API_BASE_URL}/api/testimonial/gettestimonialsByid/${id}` // ✅ ensure correct endpoint name
-    );
+    try {
+      const res_data = await getTestimonialById(id);
 
-    const res_data = await response.json();
-
-    if (response.ok && res_data.msg) {
-      const data = res_data.msg;
-
-      setTestimonial({
-        name: data.name || "",
-        designation: data.designation || "",
-        feedback: data.feedback || "",
-        old_image: data.image || "",
-      });
-    } else {
-      toast.error("Testimonial not found.");
+      if (res_data.msg) {
+        const data = res_data.msg;
+        setTestimonial({
+          name: data.name || "",
+          designation: data.designation || "",
+          feedback: data.feedback || "",
+          old_image: data.image || "",
+        });
+      } else {
+        toast.error("Testimonial not found.");
+      }
+    } catch (error) {
+      console.error("Fetch testimonial error:", error);
+      toast.error("Failed to fetch testimonial data.");
     }
-  } catch (error) {
-    console.error("Fetch testimonial error:", error);
-    toast.error("Failed to fetch testimonial data.");
-  }
-};
+  };
 
-
-    fetchTestimonial();
-  }, [id]);
-
+  fetchTestimonial();
+}, [id]);
+ 
   // Input handler
   const handleInput = (e) => {
     setTestimonial({ ...testimonial, [e.target.name]: e.target.value });
@@ -75,50 +70,44 @@ const navigate = useNavigate();
 
 
   // ✅ Submit update
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
+ const handleUpdateSubmit = async (e) => {
+  e.preventDefault();
+  const newErrors = {};
 
-     if (!testimonial.name) newErrors.name = "Name is required";
-       if (!testimonial.designation) newErrors.designation = "Designation is required";
-        if (!testimonial.feedback) newErrors.feedback = "Feedback is required";
+  if (!testimonial.name) newErrors.name = "Name is required";
+  if (!testimonial.designation) newErrors.designation = "Designation is required";
+  if (!testimonial.feedback) newErrors.feedback = "Feedback is required";
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  try {
+    const adminid = localStorage.getItem("adminid");
+    const formData = new FormData();
+
+    formData.append("name", testimonial.name);
+    formData.append("designation", testimonial.designation);
+    formData.append("feedback", testimonial.feedback);
+    formData.append("updatedBy", adminid);
+
+    if (testimonial.image) formData.append("image", testimonial.image);
+
+    const res_data = await updateTestimonial(id, formData);
+
+    if (res_data.success === false || res_data.msg === "Testimonial already exists") {
+      toast.error(res_data.msg || "Failed to update testimonial");
       return;
     }
 
-    try {
-      const adminid = localStorage.getItem("adminid");
-      const formData = new FormData();
-      formData.append("name", testimonial.name);
-      formData.append("designation", testimonial.designation);
-
-      formData.append("feedback", testimonial.feedback);
-
-      if (testimonial.image) formData.append("image", testimonial.image);
-    
- 
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/testimonial/updatetestimonial/${id}`,
-        {
-          method: "PATCH",
-          body: formData,
-        }
-      );
-
-      const res_data = await response.json();
-      if (response.ok) {
-        toast.success("testimonial updated successfully!");
-        navigate("/testimonial-list");
-      } else {
-        toast.error(res_data.msg || "Failed to update testimonial");
-      }
-    } catch (error) {
-      console.error("Update testimonial Error:", error);
-      toast.error("Something went wrong!");
-    }
-  };
+    toast.success("Testimonial updated successfully!");
+    navigate("/testimonial-list");
+  } catch (error) {
+    console.error("Update testimonial Error:", error);
+    toast.error("Something went wrong!");
+  }
+};
 
 
  

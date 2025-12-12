@@ -26,6 +26,11 @@ import Breadcrumbs from "../../components/Common/Breadcrumb";
 import { Link } from "react-router-dom";
 import deleteimg from "../../assets/images/delete.png";
 import { toast } from "react-toastify";
+import {
+  getTestimonials,
+  deleteTestimonial,
+  updateTestimonialStatus,
+} from "../../api/testimonialApi";
 
 // 🔎 Global filter component
 function GlobalFilter({
@@ -261,92 +266,63 @@ const TestimonialsList  = () => {
       )
     );
   };
+const fetchData = async () => {
+  try {
+    const result = await getTestimonials();
+    setTestimonialList(result.msg || []);
+  } catch (error) {
+    console.error("Error fetching testimonials:", error);
+    toast.error("Failed to load testimonial data. Please try again later.");
+  }
+};
 
-  const fetchData = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/testimonial/getdatatestimonial`,
-        {
-          method: "GET",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      setTestimonialList(result.msg);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Failed to load testimonial data. Please try again later.");
-    }
-  };
 
   // 👇 Confirm delete function
-  const handleyesno = async () => {
-    if (!deleteId) {
-      toast.error("No ID to delete.");
+ const handleyesno = async () => {
+  if (!deleteId) {
+    toast.error("No ID to delete.");
+    return;
+  }
+
+  try {
+    const res_data = await deleteTestimonial(deleteId);
+
+    if (res_data.success === false) {
+      toast.error(res_data.msg || "Failed to delete testimonial");
       return;
     }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/testimonial/deletetestimonial/${deleteId}`,
-        {
-          method: "DELETE",
-        }
-      );
 
-      const data = await response.json();
+    toast.success("Testimonial deleted successfully!");
+    setTestimonialList((prevItems) =>
+      prevItems.filter((row) => row._id !== deleteId)
+    );
+    setModalOpen2(false);
+    setDeleteId(null);
+  } catch (error) {
+    console.error("Delete testimonial error:", error);
+    toast.error("Something went wrong while deleting testimonial.");
+  }
+};
 
-      if (response.ok) {
-        fetchData(); // Reload data
-        setModalOpen2(false);
-        toast.success("Selected data Deleted Successfully");
-        setTestimonialList((prevItems) =>
-          prevItems.filter((row) => row._id !== deleteId)
-        );
-        setDeleteId(null);
-      } else {
-        toast.error(data.extraDetails || data.message);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong.");
+ const handleChange = async (currentStatus, id) => {
+  const newStatus = currentStatus == 1 ? 0 : 1;
+
+  try {
+    const res_data = await updateTestimonialStatus(id, newStatus);
+
+    if (res_data.success === false) {
+      toast.error(res_data.msg || "Failed to update status");
+      return;
     }
-  };
 
-  const handleChange = async (currentStatus, id) => {
-    const newStatus = currentStatus == 1 ? 0 : 1;
-
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/testimonial/update-statustestimonial`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: newStatus, id }),
-        }
-      );
-
-      const res_data = await response.json();
-
-      if (response.ok) {
-        toast.success("testimonial Status updated Successfully");
-        fetchData(); // Refresh the list
-      } else {
-        toast.error(
-          res_data.extraDetails || res_data.message || "Something went wrong."
-        );
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Error updating status. Please try again!");
-    }
-  };
-
+    toast.success("Testimonial status updated successfully!");
+    fetchData();
+  } catch (error) {
+    console.error("Error updating status:", error);
+    toast.error("Error updating status. Please try again!");
+  }
+};
+ 
   useEffect(() => {
     fetchData();
   }, []);

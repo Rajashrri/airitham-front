@@ -11,6 +11,7 @@ import {
 } from "reactstrap";
 import Breadcrumbs from "../../components/Common/Breadcrumb";
 import { toast } from "react-toastify";
+import { addTestimonial } from "../../api/testimonialApi";
 
 const Addtestimonial = () => {
   const [testimonial, setTestimonial] = useState({
@@ -40,61 +41,50 @@ const Addtestimonial = () => {
   };
 
   // ✅ Submit handler
-  const handleAddSubmit = async (e) => {
-    e.preventDefault();
-    const newErrors = {};
+const handleAddSubmit = async (e) => {
+  e.preventDefault();
+  const newErrors = {};
 
-    // Validation for all required fields
-    if (!testimonial.name) newErrors.name = "Name is required";
-        if (!testimonial.designation) newErrors.designation = "Designation is required";
-        if (!testimonial.feedback) newErrors.feedback = "Feedback is required";
+  // Validation
+  if (!testimonial.name) newErrors.name = "Name is required";
+  if (!testimonial.designation) newErrors.designation = "Designation is required";
+  if (!testimonial.feedback) newErrors.feedback = "Feedback is required";
+  if (!testimonial.image) newErrors.image = "Image is required";
 
- 
-    if (!testimonial.image) newErrors.image = "Main image is required";
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  try {
+    const adminid = localStorage.getItem("adminid");
+    const formData = new FormData();
+
+    formData.append("name", testimonial.name);
+    formData.append("designation", testimonial.designation);
+    formData.append("feedback", testimonial.feedback);
+    formData.append("createdBy", adminid);
+
+    if (testimonial.image) formData.append("image", testimonial.image);
+
+    // ✅ Use API helper instead of fetch
+    const res_data = await addTestimonial(formData);
+    console.log("API Response:", res_data);
+
+    if (res_data.success === false || res_data.msg === "Testimonial already exists") {
+      toast.error(res_data.msg || "Failed to add testimonial");
       return;
     }
 
-    try {
-      const adminid = localStorage.getItem("adminid");
+    toast.success("Testimonial added successfully!");
+    setErrors({});
+    setTestimonial({ name: "", designation: "", feedback: "", image: null });
+  } catch (error) {
+    console.error("Add Testimonial Error:", error);
+    toast.error("Something went wrong!");
+  }
+};
 
-      const formData = new FormData();
-      formData.append("name", testimonial.name);
-      formData.append("createdBy", adminid);
-  formData.append("designation", testimonial.designation);
-    formData.append("feedback", testimonial.feedback);
-      if (testimonial.image) formData.append("image", testimonial.image);
-
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/testimonial/addtestimonial`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      const res_data = await response.json();
-      console.log("API Response:", res_data);
-
-      if (response.ok) {
-        toast.success("testimonial Added successfully!");
-        setErrors({});
-        setTestimonial({
-          name: "",
- designation: "",
-          feedback: "",
-          image: null,
-        });
-      } else {
-        toast.error(res_data.msg || "Failed to add blog");
-      }
-    } catch (error) {
-      console.error("Add Blog Error:", error);
-      toast.error("Something went wrong!");
-    }
-  };
 
   return (
     <div className="page-content">
