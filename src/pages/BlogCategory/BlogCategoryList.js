@@ -28,7 +28,14 @@ import prvi from "../../assets/images/privileges.png";
 import deleteimg from "../../assets/images/delete.png";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
-
+import {
+  fetchBlogCategories,
+  addBlogCategory,
+  updateBlogCategory,
+  deleteBlogCategory,
+  getBlogCategoryById,
+  updateBlogCategoryStatus,
+} from "../../api/blogCategoryApi";
 function GlobalFilter({
   preGlobalFilteredRows,
   globalFilter,
@@ -257,112 +264,54 @@ const RoleMasterList = () => {
     setDeleteId(null);
   };
   //for datatable
-  const fetchData = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blogcategory/getdatablogcategory`,
-        {
-          method: "GET",
-        }
-      );
+const fetchData = async () => {
+  try {
+    const result = await fetchBlogCategories();
+    setcategorylist(result.msg);
+  } catch (error) {
+    toast.error("Failed to load categories.");
+  }
+};
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
+const handleChange = async (currentStatus, id) => {
+  const newStatus = currentStatus == 1 ? 0 : 1;
+  try {
+    await updateBlogCategoryStatus(id, newStatus);
+    toast.success("Status updated successfully");
+    fetchData();
+  } catch (error) {
+    toast.error("Failed to update status");
+  }
+};
 
-      const result = await response.json();
-      setcategorylist(result.msg); // ✅ set rolelist, not setData
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Failed to load roles. Please try again later.");
-    }
-  };
-  const handleChange = async (currentStatus, id) => {
-    const newStatus = currentStatus == 1 ? 0 : 1;
-
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blogcategory/update-statuscategory`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: newStatus, id }),
-        }
-      );
-
-      const res_data = await response.json();
-
-      if (response.ok) {
-        toast.success("Category Status updated Successfully");
-        fetchData(); // Refresh the list
-      } else {
-        toast.error(
-          res_data.extraDetails || res_data.message || "Something went wrong."
-        );
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Error updating status. Please try again!");
-    }
-  };
   const [itemIdToDelete, setItemIdToDelete] = useState(null);
 
   //for edit
-  const handleedit = async (id) => {
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blogcategory/getblogcategoryByid/${id}`,
-        {
-          method: "GET",
-        }
-      );
-      const data = await response.json();
+ const handleedit = async (id) => {
+  try {
+    const data = await getBlogCategoryById(id);
+    setcategory({ name: data.msg[0].name });
+    setItemIdToDelete(data.msg[0]._id);
+    setModalOpen(true);
+  } catch (error) {
+    toast.error("Failed to load category data");
+  }
+};
 
-      setcategory({
-        name: data.msg[0].name,
-      });
-      setItemIdToDelete(data.msg[0]._id);
-
-      setModalOpen(true);
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   // 👇 Confirm delete function
-  const handleyesno = async () => {
-    if (!deleteId) {
-      toast.error("No ID to delete.");
-      return;
-    }
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/blogcategory/deleteblogcategory/${deleteId}`,
-        {
-          method: "DELETE",
-        }
-      );
+ const handleyesno = async () => {
+  if (!deleteId) return toast.error("No ID to delete.");
+  try {
+    const data = await deleteBlogCategory(deleteId);
+    toast.success("Deleted successfully");
+    setModalOpen2(false);
+    fetchData();
+  } catch (error) {
+    toast.error("Delete failed");
+  }
+};
 
-      const data = await response.json();
-
-      if (response.ok) {
-        fetchData(); // Reload data
-        setModalOpen2(false);
-        toast.success("Selected data Deleted Successfully");
-        setcategorylist((prevItems) =>
-          prevItems.filter((row) => row._id !== deleteId)
-        );
-        setDeleteId(null);
-      } else {
-        toast.error(data.extraDetails || data.message);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong.");
-    }
-  };
 
   const handleStatusToggle = (id) => {
     setcategorylist((prevList) =>
@@ -464,84 +413,65 @@ const RoleMasterList = () => {
 
   const [errors, setErrors] = useState({});
 
-  const handleaddsubmit = async (e) => {
-    e.preventDefault();
+const handleaddsubmit = async (e) => {
+  e.preventDefault();
 
-    const newErrors = {};
-    if (!category.name) {
-      newErrors.name = "Category Name is required";
-      setErrors(newErrors);
-      return;
-    }
-    const id = itemIdToDelete;
-    if (!id) {
-      try {
-  const adminid = localStorage.getItem("adminid");
-
-  const response = await fetch(
-    `${process.env.REACT_APP_API_BASE_URL}/api/blogcategory/addblogcategory`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ...category, createdBy: adminid }),
-    }
-  );
-
-  const res_data = await response.json();
-  console.log("Status:", response.status);
-  console.log("API Response:", res_data);
-
-  if (!response.ok) {
-    if (res_data.msg === "Category already exist") {
-      setErrors({ name: res_data.msg });
-    } else {
-      toast.error(res_data.msg || "Something went wrong.");
-    }
+  // 🔸 Basic validation
+  if (!category.name) {
+    setErrors({ name: "Category Name is required" });
     return;
   }
 
-  // ✅ Success toast
-  toast.success("Category added successfully!");
-  handleClose1();
-  setcategory({ name: "" });
-  setErrors({});
-  fetchData();
-} catch (error) {
-  console.error("Add Category Error:", error);
-  toast.error("Network or server error.");
-}
-    } else {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_API_BASE_URL}/api/blogcategory/updateblogcategory/${id}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(category),
-          }
-        );
-        const res_data = await response.json();
+  try {
+    const adminid = localStorage.getItem("adminid");
+    const payload = { ...category, createdBy: adminid };
+    let res_data;
 
-        if (response.ok == true) {
-          handleClose1();
-          toast.success(`Update succesfully`);
-          setErrors("");
-          setcategory({
-            name: "",
-          });
-          fetchData();
-        } else {
-          toast.error(res_data.msg);
-        }
-      } catch (error) {
-        console.log("edit Category", error);
+    if (itemIdToDelete) {
+      // 🔸 Update existing category
+      res_data = await updateBlogCategory(itemIdToDelete, payload);
+
+      if (res_data.msg === "Category already exist") {
+        setErrors({ name: res_data.msg });
+        toast.error(res_data.msg);
+        return;
       }
+
+      if (res_data.success === false || res_data.error) {
+        toast.error(res_data.msg || "Update failed.");
+        return;
+      }
+
+      toast.success("Updated successfully");
+    } else {
+      // 🔸 Add new category
+      res_data = await addBlogCategory(payload);
+
+      if (res_data.msg === "Category already exist") {
+        setErrors({ name: res_data.msg });
+        toast.error(res_data.msg);
+        return;
+      }
+
+      if (!res_data.success && res_data.error) {
+        toast.error(res_data.msg || "Add failed.");
+        return;
+      }
+
+      toast.success("Added successfully");
     }
-  };
+
+    // 🔸 On success
+    handleClose1();
+    setcategory({ name: "" });
+    setErrors({});
+    fetchData();
+  } catch (error) {
+    console.error("Add/Update Category Error:", error);
+    toast.error("Something went wrong.");
+  }
+};
+
 
   useEffect(() => {
     fetchData();
