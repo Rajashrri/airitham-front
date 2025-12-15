@@ -20,13 +20,13 @@ class Dashboard extends Component {
         super(props);
         this.state = {
             breadcrumbItems : [
-                { title : "Nazox", link : "/" },
+                { title : "AIRITHM", link : "/" },
                 { title : "Dashboard", link : "#" },
             ],
             reports : [
-                { icon : "ri-stack-line", title : "Number of Sales", value : "1452", rate : "2.4%", desc : "From previous period" },
-                { icon : "ri-store-2-line", title : "Sales Revenue", value : "$ 38452", rate : "2.4%", desc : "From previous period" },
-                { icon : "ri-briefcase-4-line", title : "Average Price", value : "$ 15.4", rate : "2.4%", desc : "From previous period" },
+                { icon : "ri-stack-line", title : "Blogs", value : "1452", rate: "", desc   : "Total Blogs" },
+                { icon : "ri-store-2-line", title : "Contact Enquiries", value   : "60" ,rate: "", desc   : "Lifetime" },
+                { icon : "ri-briefcase-4-line", title : "Contact Enquiries", value : "$ 15.4", rate : "", desc : "This Month" },
                 // { icon : "ri-briefcase-4-line", title : "Average Price", value : "$ 15.4", rate : "2.4%", desc : "From previous period" },
             ]
         }
