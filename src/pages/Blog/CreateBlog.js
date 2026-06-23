@@ -36,15 +36,19 @@ const CreateEmploye = () => {
   });
 
   const [errors, setErrors] = useState({});
+const handleInput = (e) => {
+  const { name, value } = e.target;
 
-  const handleInput = (e) => {
-    const { name, value } = e.target;
-    setBlog((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  setBlog((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
 
+  setErrors((prev) => ({
+    ...prev,
+    [name]: "",
+  }));
+};
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     setBlog((prev) => ({
@@ -300,13 +304,16 @@ const handleAddSubmit = async (e) => {
 
                       {/* Details */}
                       <Col md="12">
-                        <RichTextEditor
-                      value={blog.details}
-                      onChange={(val) =>
-                        setBlog({ ...blog, details: val })
-                      }
-                      height={400}
-                    />
+                     <RichTextEditor
+  value={blog.details}
+  onChange={(val) =>
+    setBlog((prev) => ({
+      ...prev,
+      details: val,
+    }))
+  }
+  height={400}
+/>
 
                     {errors.description && (
                       <p className="mt-1 text-sm text-red-500">

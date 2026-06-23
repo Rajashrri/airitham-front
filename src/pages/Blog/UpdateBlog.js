@@ -298,16 +298,17 @@ const fetchOptions = async () => {
                     {/* Details */}
                     <Col md="12">
                       <Label className="form-label">Details</Label>
-                     <RichTextEditor
-                      value={blog.details}
-                      onChange={(val) =>
-                        setBlog((prev) => ({
-                          ...prev,
-                          details: val,
-                        }))
-                      }
-                      height={400}
-                    />
+                                      <RichTextEditor
+  value={blog.details}
+  onChange={(val) =>
+    setBlog((prev) => ({
+      ...prev,
+      details: val,
+    }))
+  }
+  height={400}
+/>
+
                     </Col>
                   </Row>
 
