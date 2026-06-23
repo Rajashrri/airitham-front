@@ -14,6 +14,7 @@ import Select from "react-select";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
 import { getBlogCategories, getBlogById, updateBlog } from "../../api/blogApi";
+import RichTextEditor from "../../components/editor/RichTextEditor";
 
 const UpdateEmploye = () => {
   const { id } = useParams(); // ✅ Allowed in functional component
@@ -297,17 +298,16 @@ const fetchOptions = async () => {
                     {/* Details */}
                     <Col md="12">
                       <Label className="form-label">Details</Label>
-                      <Input
-                        type="textarea"
-                        rows="5"
-                        name="details"
-                        value={blog.details}
-                        onChange={handleInput}
-                        placeholder="Enter blog content"
-                      />
-                      {errors.details && (
-                        <span className="text-danger">{errors.details}</span>
-                      )}
+                     <RichTextEditor
+                      value={blog.details}
+                      onChange={(val) =>
+                        setBlog((prev) => ({
+                          ...prev,
+                          details: val,
+                        }))
+                      }
+                      height={400}
+                    />
                     </Col>
                   </Row>
 

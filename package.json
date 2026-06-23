@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^44.3.0",
-    "@ckeditor/ckeditor5-react": "^11.0.0",
+    "@ckeditor/ckeditor5-react": "^11.2.0",
     "@ckeditor/ckeditor5-source-editing": "^47.3.0",
     "@fullcalendar/bootstrap": "^6.1.15",
     "@fullcalendar/core": "^6.1.15",
@@ -22,6 +22,8 @@
     "axios-mock-adapter": "^2.1.0",
     "bootstrap": "5.3.3",
     "chart.js": "^4.4.6",
+    "ckeditor4": "^4.25.1",
+    "ckeditor4-react": "^5.2.1",
     "dotenv": "^17.2.0",
     "echarts-for-react": "^3.0.2",
     "firebase": "^11.0.1",

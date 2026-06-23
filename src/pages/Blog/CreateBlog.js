@@ -13,6 +13,7 @@ import Breadcrumbs from "../../components/Common/Breadcrumb";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { addBlog, getBlogCategories } from "../../api/blogApi";
+import RichTextEditor from "../../components/editor/RichTextEditor";
 
 
 const CreateEmploye = () => {
@@ -299,18 +300,19 @@ const handleAddSubmit = async (e) => {
 
                       {/* Details */}
                       <Col md="12">
-                        <Label className="form-label">Details</Label>
-                        <Input
-                          type="textarea"
-                          rows="5"
-                          name="details"
-                          value={blog.details}
-                          onChange={handleInput}
-                          placeholder="Enter blog content"
-                        />
-                        {errors.details && (
-                          <span className="text-danger">{errors.details}</span>
-                        )}
+                        <RichTextEditor
+                      value={blog.details}
+                      onChange={(val) =>
+                        setBlog({ ...blog, details: val })
+                      }
+                      height={400}
+                    />
+
+                    {errors.description && (
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.details}
+                      </p>
+                    )}
                       </Col>
 
 
