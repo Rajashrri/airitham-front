@@ -245,16 +245,16 @@ const fetchOptions = async () => {
                         accept="image/*"
                         onChange={handleFileChange}
                       />
-                      {blog.old_main_image && (
-                        <div className="mt-2">
-                          <img
-                            src={`${process.env.REACT_APP_API_BASE_URL}/blog/${blog.old_main_image}`}
-                            alt="Main"
-                            width="100"
-                            className="rounded border"
-                          />
-                        </div>
-                      )}
+            {blog.old_main_image && (
+  <div className="mt-2">
+    <img
+      src={blog.old_main_image}
+      alt="Main"
+      width="100"
+      className="rounded border"
+    />
+  </div>
+)}
                     </Col>
 
                     {/* Feature Image */}
@@ -266,16 +266,16 @@ const fetchOptions = async () => {
                         accept="image/*"
                         onChange={handleFileChange}
                       />
-                      {blog.old_feature_image && (
-                        <div className="mt-2">
-                          <img
-                            src={`${process.env.REACT_APP_API_BASE_URL}/blog/${blog.old_feature_image}`}
-                            alt="Feature"
-                            width="100"
-                            className="rounded border"
-                          />
-                        </div>
-                      )}
+                     {blog.old_feature_image && (
+  <div className="mt-2">
+    <img
+      src={blog.old_feature_image}
+      alt="Feature"
+      width="100"
+      className="rounded border"
+    />
+  </div>
+)}
                     </Col>
                     {/* Short Description */}
                     <Col md="12">
