@@ -55,10 +55,13 @@ const RichTextEditor = ({
 
         instanceRef.current = editor;
 
-        editor.on("instanceReady", () => {
-          editor.setData(value || "");
-          isInitializing.current = false;
-        });
+      editor.on("instanceReady", () => {
+  isInitializing.current = false;
+
+  if (value) {
+    editor.setData(value);
+  }
+});
 
         editor.on("change", () => {
           onChange?.(editor.getData());
@@ -85,14 +88,17 @@ const RichTextEditor = ({
   }, []); // ✅ Empty deps - only initialize once
 
   // ✅ Update content when value changes from parent
-  useEffect(() => {
-    if (instanceRef.current && instanceRef.current.status === 'ready') {
-      const currentData = instanceRef.current.getData();
-      if (currentData !== value && value !== undefined) {
-        instanceRef.current.setData(value);
-      }
+useEffect(() => {
+  const editor = instanceRef.current;
+
+  if (!editor || value === undefined) return;
+
+  if (editor.status === "ready") {
+    if (editor.getData() !== value) {
+      editor.setData(value);
     }
-  }, [value]);
+  }
+}, [value]);
 
   // ✅ Dynamic height update
   useEffect(() => {
@@ -111,6 +117,8 @@ const RichTextEditor = ({
   return (
     <div>
       <textarea 
+        id="blog-editor"
+
         ref={editorRef}
         style={{ width: '100%', height: `${height}px` }}
         defaultValue={value}
