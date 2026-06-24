@@ -60,6 +60,16 @@ export const updateBlogStatus = async (id, status) => {
   });
   return response.json();
 };
+// ✅ Update blog featured
+export const updateBlogFe = async (id, featured) => {
+  const response = await fetch(`${BASE_URL}/api/blog/update-featuredblog`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, featured }),
+  });
+  return response.json();
+};
+
 
 // ✅ Delete blog
 export const deleteBlog = async (id) => {

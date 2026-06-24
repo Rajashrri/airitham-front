@@ -19,7 +19,8 @@ import RichTextEditor from "../../components/editor/RichTextEditor";
 const UpdateEmploye = () => {
   const { id } = useParams(); // ✅ Allowed in functional component
   const navigate = useNavigate();
-
+const [mainImageFile, setMainImageFile] = useState(null);
+const [featureImageFile, setFeatureImageFile] = useState(null);
   const [optionscat, setOptions] = useState([]);
   const [errors, setErrors] = useState({});
   const [blog, setBlog] = useState({
@@ -131,7 +132,9 @@ const fetchOptions = async () => {
 
     if (blog.main_image) formData.append("main_image", blog.main_image);
     if (blog.feature_image) formData.append("feature_image", blog.feature_image);
-
+for (let pair of formData.entries()) {
+  console.log(pair[0], pair[1]);
+}
     const res_data = await updateBlog(id, formData);
 
     if (res_data.success === false || res_data.msg === "Blog already exist") {

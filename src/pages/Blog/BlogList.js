@@ -31,6 +31,7 @@ import {
   getBlogs,
   getBlogCategoriesForTable,
   updateBlogStatus,
+  updateBlogFe,
   deleteBlog,
 } from "../../api/blogApi";
 
@@ -295,6 +296,26 @@ const handleChange = async (currentStatus, id) => {
 };
 
 
+  //fe
+
+const handleChangefe = async (currentStatus, id) => {
+  const newStatus = currentStatus == 1 ? 0 : 1;
+
+  try {
+    const res_data = await updateBlogFe(id, newStatus);
+
+    if (res_data.success === false) {
+      toast.error(res_data.msg || "Failed to update status");
+      return;
+    }
+
+    toast.success("Blog Featured updated successfully");
+    fetchData();
+  } catch (error) {
+    console.error("Error updating status:", error);
+    toast.error("Error updating status. Please try again!");
+  }
+};
   const [deleteId, setDeleteId] = useState(null);
 
   // 👇 Open modal and set ID
@@ -380,6 +401,36 @@ const handleChange = async (currentStatus, id) => {
           );
         },
       },
+
+
+        {
+        Header: "Featured",
+        accessor: "featured",
+        Cell: ({ row }) => {
+          const isActive = row.original.featured == 1;
+          return (
+            <div className="form-check form-switch">
+              <input
+                type="checkbox"
+                className="form-check-input"
+                id={`switch-${row.original._id}`}
+                checked={isActive}
+                onChange={() =>
+                  handleChangefe(row.original.featured, row.original._id)
+                }
+              />
+              <label
+                className="form-check-label"
+                htmlFor={`switch-${row.original._id}`}
+              >
+                {isActive ? "Active" : "Inactive"}
+              </label>
+            </div>
+          );
+        },
+      },
+
+
       {
         Header: "Option",
         Cell: ({ row }) => (
