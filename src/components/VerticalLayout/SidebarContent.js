@@ -156,9 +156,9 @@ const { privileges, roleName } = this.state;
 
        
           <li>
-            <Link to="/client-list" className="waves-effect">
+            <Link to="/team-list" className="waves-effect">
               <i className="mdi mdi-account-group-outline"></i>
-              <span className="ms-1">Client</span>
+              <span className="ms-1">Team</span>
             </Link>
           </li>
        

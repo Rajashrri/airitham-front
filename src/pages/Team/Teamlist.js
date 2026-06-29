@@ -27,10 +27,10 @@ import { Link } from "react-router-dom";
 import deleteimg from "../../assets/images/delete.png";
 import { toast } from "react-toastify";
 import {
-  getClients,
-  deleteClient,
-  updateClientStatus,
-} from "../../api/clientApi";
+  getTeam,
+  deleteTeam,
+  updateTeamStatus,
+} from "../../api/teamApi";
 
 // 🔎 Global filter component
 function GlobalFilter({
@@ -135,7 +135,7 @@ const TableContainer = ({
         )}
         <Col md={6}>
           <div className="d-flex justify-content-end">
-            <Link to="/add-client" className="btn btn-primary">
+            <Link to="/add-team" className="btn btn-primary">
               Add
             </Link>
           </div>
@@ -269,7 +269,7 @@ const Clientlist = () => {
 
  const fetchData = async () => {
   try {
-    const result = await getClients();
+    const result = await getTeam();
     setClientList(result.msg || []);
   } catch (error) {
     console.error("Error fetching clients:", error);
@@ -285,14 +285,14 @@ const Clientlist = () => {
   }
 
   try {
-    const data = await deleteClient(deleteId);
+    const data = await deleteTeam(deleteId);
 
     if (data.success === false) {
       toast.error(data.msg || "Failed to delete client");
       return;
     }
 
-    toast.success("Client deleted successfully");
+    toast.success("Team deleted successfully");
     setClientList((prevItems) =>
       prevItems.filter((row) => row._id !== deleteId)
     );
@@ -309,14 +309,14 @@ const handleChange = async (currentStatus, id) => {
   const newStatus = currentStatus == 1 ? 0 : 1;
 
   try {
-    const res_data = await updateClientStatus(id, newStatus);
+    const res_data = await updateTeamStatus(id, newStatus);
 
     if (res_data.success === false) {
       toast.error(res_data.msg || "Failed to update status");
       return;
     }
 
-    toast.success("Client status updated successfully");
+    toast.success("Team status updated successfully");
     fetchData();
   } catch (error) {
     console.error("Error updating status:", error);
@@ -368,7 +368,7 @@ const handleChange = async (currentStatus, id) => {
         Header: "Option",
         Cell: ({ row }) => (
           <div className="d-flex gap-2">
-            <Link  to={`/update-client/${row.original._id}`}   className="btn btn-primary btn-sm">
+            <Link  to={`/update-team/${row.original._id}`}   className="btn btn-primary btn-sm">
               Edit
             </Link>
             <Button

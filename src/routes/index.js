@@ -105,9 +105,9 @@ import BlogCategoryList from "../pages/BlogCategory/BlogCategoryList";
 import BlogList from "../pages/Blog/BlogList";
 import CreateBlog from "../pages/Blog/CreateBlog";
 import UpdateBlog from "../pages/Blog/UpdateBlog";
-import Clientlist from "../pages/Clients/Clientlist";
-import AddClient from "../pages/Clients/AddClient";
-import UpdateClient from "../pages/Clients/UpdateClient";
+import Teamlist from "../pages/Team/Teamlist";
+import AddTeam from "../pages/Team/AddTeam";
+import UpdateTeam from "../pages/Team/UpdateTeam";
 import Testimonialslist from "../pages/Testimonials/Testimonialslist";
 import AddTestimonials from "../pages/Testimonials/AddTestimonials";
 import UpdateTestimonials from "../pages/Testimonials/UpdateTestimonials";
@@ -211,9 +211,9 @@ const authProtectedRoutes = [
 
   //Client list
 
-  { path: "/client-list", component: <Clientlist /> },
-  { path: "/add-client", component: <AddClient /> },
-  { path: "/update-client/:id", component: <UpdateClient /> },
+  { path: "/team-list", component: <Teamlist /> },
+  { path: "/add-team", component: <AddTeam /> },
+  { path: "/update-team/:id", component: <UpdateTeam /> },
 
   // Project
   { path: "/testimonial-list", component: <Testimonialslist /> },

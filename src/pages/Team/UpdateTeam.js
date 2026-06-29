@@ -12,11 +12,12 @@ import {
 import Breadcrumbs from "../../components/Common/Breadcrumb";
 import { toast } from "react-toastify";
 import { useParams,useNavigate } from "react-router-dom";
-import { getClientById, updateClient } from "../../api/clientApi";
+import { getTeamById, updateTeam } from "../../api/teamApi";
  
 const UpdateClient = () => {
   const [client, setClient] = useState({
     name: "",
+    designation: "",
     image: null,
     old_image: "",
   });
@@ -27,26 +28,27 @@ const navigate = useNavigate();
 
   const breadcrumbItems = [
     { title: "Dashboard", link: "#" },
-    { title: "Update Client", link: "#" },
+    { title: "Update Team", link: "#" },
   ];
 
   // Fetch client data
 useEffect(() => {
   const fetchClient = async () => {
     try {
-      const res_data = await getClientById(id);
+      const res_data = await getTeamById(id);
 
       if (res_data.msg) {
         const data = res_data.msg;
         setClient({
           name: data.name || "",
+             designation: data.designation || "",
           old_image: data.image || "",
         });
       } else {
-        toast.error("Client not found");
+        toast.error("Team not found");
       }
     } catch (error) {
-      console.error("Fetch client error:", error);
+      console.error("Fetch team error:", error);
       toast.error("Failed to fetch client data");
     }
   };
@@ -72,6 +74,7 @@ useEffect(() => {
   const newErrors = {};
 
   if (!client.name) newErrors.name = "Name is required";
+  if (!client.designation) newErrors.designation = "Designation is required";
 
   if (Object.keys(newErrors).length > 0) {
     setErrors(newErrors);
@@ -81,20 +84,21 @@ useEffect(() => {
   try {
     const adminid = localStorage.getItem("adminid");
     const formData = new FormData();
+    formData.append("designation", client.designation);
 
     formData.append("name", client.name);
     formData.append("updatedBy", adminid);
     if (client.image) formData.append("image", client.image);
 
-    const res_data = await updateClient(id, formData);
+    const res_data = await updateTeam(id, formData);
 
     if (res_data.success === false || res_data.msg === "Client already exist") {
       toast.error(res_data.msg || "Failed to update client");
       return;
     }
 
-    toast.success("Client updated successfully!");
-    navigate("/client-list");
+    toast.success("Team updated successfully!");
+    navigate("/team-list");
   } catch (error) {
     console.error("Update client Error:", error);
     toast.error("Something went wrong!");
@@ -132,6 +136,22 @@ useEffect(() => {
                         </span>
                       )}
                     </Col>
+
+                      <Col md="6">
+                      <Label> Designation</Label>
+                      <Input
+                        name="designation"
+                        type="text"
+                        placeholder="Designation"
+                        value={client.designation} // ✅ correct usage
+                        onChange={handleInput}
+                      />
+                      {errors.designation && (
+                        <span className="text-danger">
+                          {errors.designation}
+                        </span>
+                      )}
+                    </Col>
                      {/* Main Image */}
                     <Col md="6">
                       <Label className="form-label">Image</Label>
@@ -144,7 +164,7 @@ useEffect(() => {
                       {client.old_image && (
                         <div className="mt-2">
                           <img
-                            src={`${process.env.REACT_APP_API_BASE_URL}/client/${client.old_image}`}
+                            src={`${client.old_image}`}
                             alt="Main"
                             width="100"
                             className="rounded border"

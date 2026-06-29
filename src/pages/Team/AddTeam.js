@@ -4,11 +4,12 @@ import {
 } from "reactstrap";
 import Breadcrumbs from '../../components/Common/Breadcrumb';
 import { toast } from 'react-toastify';
-import { addClient } from "../../api/clientApi";
+import { addTeam } from "../../api/teamApi";
 
 const AddClient = () => {
   const [client, setClient] = useState({
     name: "",
+    designation: "",
      image: null,
   
   });
@@ -17,7 +18,7 @@ const AddClient = () => {
 
   const breadcrumbItems = [
     { title: "Dashboard", link: "#" },
-    { title: "Add Client", link: "#" },
+    { title: "Add Team", link: "#" },
   ];
 
   const handleInput = (e) => {
@@ -41,6 +42,7 @@ const AddClient = () => {
   // Validation
   if (!client.name) newErrors.name = "Name is required";
   if (!client.image) newErrors.image = "Image is required";
+  if (!client.designation) newErrors.designation = "Designation is required";
 
   if (Object.keys(newErrors).length > 0) {
     setErrors(newErrors);
@@ -52,23 +54,25 @@ const AddClient = () => {
 
     const formData = new FormData();
     formData.append("name", client.name);
+        formData.append("designation", client.designation);
+
     formData.append("createdBy", adminid);
     if (client.image) formData.append("image", client.image);
 
     // ✅ Use API helper instead of raw fetch
-    const res_data = await addClient(formData);
+    const res_data = await addTeam(formData);
     console.log("API Response:", res_data);
 
     if (res_data.success === false || res_data.msg === "Client already exist") {
-      toast.error(res_data.msg || "Failed to add client");
+      toast.error(res_data.msg || "Failed to add Team");
       return;
     }
 
-    toast.success("Client added successfully!");
+    toast.success("Team added successfully!");
     setErrors({});
     setClient({ name: "", image: null });
   } catch (error) {
-    console.error("Add Client Error:", error);
+    console.error("Add Team Error:", error);
     toast.error("Something went wrong!");
   }
 };
@@ -80,7 +84,7 @@ const AddClient = () => {
   return (
     <div className="page-content">
       <Container fluid>
-        <Breadcrumbs title="ADD CLIENT" breadcrumbItems={breadcrumbItems} />
+        <Breadcrumbs title="ADD Team" breadcrumbItems={breadcrumbItems} />
         <Row>
           <Col xl="12">
             <Card>
@@ -98,7 +102,17 @@ const AddClient = () => {
                       />
                       {errors.name && <span className="text-danger">{errors.name}</span>}
                     </Col>
-                   
+                         <Col md="6">
+                      <Label> Designation</Label>
+                      <Input
+                        name="designation"
+                        type="text"
+                        placeholder="designation"
+                        value={client.designation}
+                        onChange={handleInput}
+                      />
+                      {errors.designation && <span className="text-danger">{errors.designation}</span>}
+                    </Col>
                    {/* Main Image */}
                                          <Col md="6">
                                            <div className="mb-3">
