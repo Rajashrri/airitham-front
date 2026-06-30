@@ -78,3 +78,27 @@ export const deleteBlog = async (id) => {
   });
   return response.json();
 };
+
+
+
+export const getSeoById = async (id) => {
+  const res = await fetch(`${BASE_URL}/api/blog/getSeoById/${id}`, {
+    method: "GET",
+  });
+
+  const data = await res.json();
+
+  return data;
+};
+
+export const updateSeo = async (id, data) => {
+  const res = await fetch(`${BASE_URL}/api/blog/update-seo/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  return await res.json();
+};

@@ -449,6 +449,14 @@ const handleChangefe = async (currentStatus, id) => {
             >
               Delete
             </Button>
+
+               <Link
+              color="primary"
+              to={`/update-seo/${row.original._id}`}
+              className="btn btn-primary"
+            >
+              SEO
+            </Link>
           </div>
         ),
       },

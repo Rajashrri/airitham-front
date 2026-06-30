@@ -105,6 +105,9 @@ import BlogCategoryList from "../pages/BlogCategory/BlogCategoryList";
 import BlogList from "../pages/Blog/BlogList";
 import CreateBlog from "../pages/Blog/CreateBlog";
 import UpdateBlog from "../pages/Blog/UpdateBlog";
+import UpdateSeo from "../pages/Blog/UpdateSeo";
+
+
 import Teamlist from "../pages/Team/Teamlist";
 import AddTeam from "../pages/Team/AddTeam";
 import UpdateTeam from "../pages/Team/UpdateTeam";
@@ -208,6 +211,7 @@ const authProtectedRoutes = [
   { path: "/blog-list", component: <BlogList /> },
   { path: "/create-blog", component: <CreateBlog /> },
   { path: "/update-blog/:id", component: <UpdateBlog /> },
+  { path: "/update-seo/:id", component: <UpdateSeo/> },
 
   //Client list
 
